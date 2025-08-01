@@ -1,14 +1,14 @@
 #!/usr/bin/env python3
-"""Module for measuring average execution time of `wait_n`."""
-import time
+"""Measure average execution time of wait_n coroutines."""
+
 import asyncio
-from typing import Callable
+import time
+
 wait_n = __import__('1-concurrent_coroutines').wait_n
 
 
 def measure_time(n: int, max_delay: int) -> float:
-    """Measure the average time of wait_n function.
-    """
+    """Return the average execution time of the wait_n function."""
     start = time.perf_counter()
     asyncio.run(wait_n(n, max_delay))
     end = time.perf_counter()
