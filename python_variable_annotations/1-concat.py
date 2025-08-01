@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
-"""This module contains a function `concat` that concatenates two strings."""
+"""Module to concatenate two strings."""
 
 
 def concat(str1: str, str2: str) -> str:
-    """Concatenate two strings."""
+    """Return the concatenation of two strings."""
     return str1 + str2

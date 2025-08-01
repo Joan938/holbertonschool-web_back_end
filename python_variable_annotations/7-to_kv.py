@@ -1,14 +1,9 @@
 #!/usr/bin/env python3
-"""
-This module contains a function to_kv that takes a string k and a value v
-(either int or float) and returns a tuple. The tuple contains the string k
-and the square of v as a float.
-"""
-from typing import Union, Tuple
+"""Module to create a tuple with a string key and the squared value."""
+
+from typing import Tuple, Union
 
 
 def to_kv(k: str, v: Union[int, float]) -> Tuple[str, float]:
-    """
-    Takes a string k and a value v (either int or float) and returns a tuple.
-    """
-    return (k, float(v ** 2))
+    """Return a tuple containing the key and the square of the value."""
+    return k, float(v ** 2)
