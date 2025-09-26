@@ -1,7 +1,9 @@
-// Define the displayMessage function using ES6 syntax
+/**
+ * Displays a message in STDOUT
+ * @param {string} message - The message to display
+ */
 const displayMessage = (message) => {
   console.log(message);
 };
 
-// Export the displayMessage function
 module.exports = displayMessage;

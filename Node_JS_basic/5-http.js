@@ -1,64 +1,82 @@
-// 5-http.js
-
 const http = require('http');
 const fs = require('fs');
-const countStudents = require('./3-read_file_async');
+const url = require('url');
 
-const database = process.argv[2];
-
-const app = http.createServer((req, res) => {
-  res.setHeader('Content-Type', 'text/plain');
-
-  if (req.url === '/') {
-    res.end('Hello Holberton School!');
-  } else if (req.url === '/students') {
-    countStudents(database)
-      .then(() => {
-        fs.readFile(database, 'utf8', (err, data) => {
-          if (err) {
-            res.statusCode = 500;
-            res.end('Cannot load the database');
-            return;
-          }
-
-          const lines = data.split('\n').filter((line) => line.trim() !== '');
-            lines.shift(); // Removes the header, it is no longer stored in a variable
-
-          const students = {};
-
-          for (const line of lines) {
-            const parts = line.split(',');
-            if (parts.length >= 4) {
-              const firstname = parts[0];
-              const field = parts[3];
-              if (!students[field]) {
-                students[field] = [];
-              }
-              students[field].push(firstname);
+function countStudents(path) {
+  return new Promise((resolve, reject) => {
+    fs.readFile(path, 'utf8', (err, data) => {
+      if (err) {
+        reject(new Error('Cannot load the database'));
+        return;
+      }
+      
+      try {
+        // Split into lines and filter out empty lines
+        const lines = data.split('\n').filter(line => line.trim() !== '');
+        
+        // Remove header line
+        const students = lines.slice(1);
+        
+        // Filter out any empty student records
+        const validStudents = students.filter(student => student.trim() !== '');
+        
+        let output = `Number of students: ${validStudents.length}\n`;
+        
+        // Group students by field
+        const fieldGroups = {};
+        
+        validStudents.forEach(student => {
+          const [firstname, lastname, age, field] = student.split(',');
+          
+          if (field && firstname) {
+            if (!fieldGroups[field]) {
+              fieldGroups[field] = [];
             }
+            fieldGroups[field].push(firstname);
           }
-
-          const total = Object.values(students).reduce((sum, arr) => sum + arr.length, 0);
-          let response = 'This is the list of our students\n';
-          response += `Number of students: ${total}\n`;
-
-          for (const [field, names] of Object.entries(students)) {
-            response += `Number of students in ${field}: ${names.length}. List: ${names.join(', ')}\n`;
-          }
-
-          res.end(response.trim());
         });
-      })
-      .catch(() => {
-        res.statusCode = 500;
-        res.end('Cannot load the database');
-      });
+        
+        // Build output for each field
+        Object.keys(fieldGroups).forEach(field => {
+          const students = fieldGroups[field];
+          output += `Number of students in ${field}: ${students.length}. List: ${students.join(', ')}\n`;
+        });
+        
+        resolve(output.trim());
+      } catch (error) {
+        reject(new Error('Cannot load the database'));
+      }
+    });
+  });
+}
+
+const app = http.createServer(async (req, res) => {
+  const parsedUrl = url.parse(req.url, true);
+  const pathname = parsedUrl.pathname;
+  
+  // Set response headers
+  res.writeHead(200, { 'Content-Type': 'text/plain' });
+  
+  if (pathname === '/') {
+    res.end('Hello Holberton School!');
+  } else if (pathname === '/students') {
+    const databasePath = process.argv[2];
+    let response = 'This is the list of our students\n';
+    
+    try {
+      const studentData = await countStudents(databasePath);
+      response += studentData;
+      res.end(response);
+    } catch (error) {
+      response += 'Cannot load the database';
+      res.end(response);
+    }
   } else {
-    res.statusCode = 404;
-    res.end('Not found');
+    res.end('Hello Holberton School!');
   }
 });
 
+// Listen on port 1245
 app.listen(1245);
 
 module.exports = app;

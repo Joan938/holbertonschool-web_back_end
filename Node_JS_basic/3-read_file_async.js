@@ -7,37 +7,43 @@ function countStudents(path) {
         reject(new Error('Cannot load the database'));
         return;
       }
-
-      const lines = data.split('\n').filter((line) => line.trim() !== '');
-      if (lines.length <= 1) {
-        console.log('Number of students: 0');
-        resolve();
-        return;
-      }
-
-      const students = lines.slice(1);
-      console.log(`Number of students: ${students.length}`);
-
-      const fields = {};
-
-      for (const line of students) {
-        const parts = line.split(',');
-        const firstName = parts[0];
-        const field = parts[3];
-
-        if (field) {
-          if (!fields[field]) {
-            fields[field] = [];
+      
+      try {
+        // Split into lines and filter out empty lines
+        const lines = data.split('\n').filter(line => line.trim() !== '');
+        
+        // Remove header line
+        const students = lines.slice(1);
+        
+        // Filter out any empty student records
+        const validStudents = students.filter(student => student.trim() !== '');
+        
+        console.log(`Number of students: ${validStudents.length}`);
+        
+        // Group students by field
+        const fieldGroups = {};
+        
+        validStudents.forEach(student => {
+          const [firstname, lastname, age, field] = student.split(',');
+          
+          if (field && firstname) {
+            if (!fieldGroups[field]) {
+              fieldGroups[field] = [];
+            }
+            fieldGroups[field].push(firstname);
           }
-          fields[field].push(firstName);
-        }
+        });
+        
+        // Display results for each field
+        Object.keys(fieldGroups).forEach(field => {
+          const students = fieldGroups[field];
+          console.log(`Number of students in ${field}: ${students.length}. List: ${students.join(', ')}`);
+        });
+        
+        resolve();
+      } catch (error) {
+        reject(new Error('Cannot load the database'));
       }
-
-      for (const [field, names] of Object.entries(fields)) {
-        console.log(`Number of students in ${field}: ${names.length}. List: ${names.join(', ')}`);
-      }
-
-      resolve();
     });
   });
 }
